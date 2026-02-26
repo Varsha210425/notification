@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification Prioritization Engine - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .form-card, .history-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .form-card h2, .history-card h2, .results-card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result-container {
+            margin-top: 30px;
+        }
+
+        .results-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .decision-box {
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .decision-box.now {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .decision-box.later {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .decision-box.never {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .decision-icon {
+            font-size: 3em;
+        }
+
+        .decision-text h3 {
+            font-size: 1.8em;
+            margin-bottom: 8px;
+        }
+
+        .decision-text p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .details-box {
+            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .detail-value {
+            color: #333;
+            word-break: break-word;
+            max-width: 400px;
+            text-align: right;
+        }
+
+        .reason-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.3);
+            padding: 8px 14px;
+            border-radius: 20px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .history-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .history-item.now {
+            border-left-color: #10b981;
+        }
+
+        .history-item.later {
+            border-left-color: #f59e0b;
+        }
+
+        .history-item.never {
+            border-left-color: #ef4444;
+        }
+
+        .history-item-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .history-item-type {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .history-item-decision {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 600;
+            color: white;
+        }
+
+        .history-item-decision.now {
+            background: #10b981;
+        }
+
+        .history-item-decision.later {
+            background: #f59e0b;
+        }
+
+        .history-item-decision.never {
+            background: #ef4444;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+        }
+
+        .empty-state p {
+            font-size: 1.1em;
+        }
+
+        .risk-score {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row-3 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .form-row, .form-row-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .decision-box {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .detail-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .detail-value {
+                text-align: left;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .error {
+            color: #dc2626;
+            background: #fee2e2;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .info-box {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔔 Notification Engine</h1>
+            <p>Test how notifications are prioritized - Send test notifications to see decisions</p>
+        </div>
+
+        <div class="main-content">
+            <div class="form-card">
+                <h2>📝 Send Notification</h2>
+                
+                <div class="info-box">
+                    <strong>How it works:</strong> Fill out this form to test how the system prioritizes your notification.
+                </div>
+
+                <form id="notificationForm">
+                    <div class="form-group">
+                        <label for="userid">👤 Your User ID</label>
+                        <input type="text" id="userid" name="userid" value="user_demo" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="title">Title</label>
+                            <input type="text" id="title" name="title" placeholder="e.g., New Message" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="eventtype">Type</label>
+                            <select id="eventtype" name="eventtype" required>
+                                <option value="">Select type...</option>
+                                <option value="message_direct">💬 Direct Message</option>
+                                <option value="security_alert">🔒 Security Alert</option>
+                                <option value="reminder">🔔 Reminder</option>
+                                <option value="shipping_update">📦 Delivery Update</option>
+                                <option value="promotion">🎁 Promotion</option>
+                                <option value="payment_failed">💳 Payment Failed</option>
+                                <option value="update">📅 Update</option>
+                                <option value="passive_tip">💡 Tip</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" name="message" placeholder="e.g., You have a new message from Alice" required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="source">Source</label>
+                            <input type="text" id="source" name="source" placeholder="e.g., messenger, email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="channel">Channel</label>
+                            <select id="channel" name="channel" required>
+                                <option value="">Select channel...</option>
+                                <option value="push">Push Notification</option>
+                                <option value="email">Email</option>
+                                <option value="sms">SMS</option>
+                                <option value="in-app">In-App</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="priorityhint">Priority</label>
+                            <select id="priorityhint" name="priorityhint">
+                                <option value="">Not specified</option>
+                                <option value="low">Low</option>
+                                <option value="normal">Normal</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="dedupekey">Dedupe Key (Optional)</label>
+                            <input type="text" id="dedupekey" name="dedupekey" placeholder="For duplicate detection">
+                        </div>
+                    </div>
+
+                    <button type="submit">🚀 Send & Analyze</button>
+                </form>
+
+                <div class="error" id="errorMessage"></div>
+                <div class="loading" id="loading">Processing...</div>
+            </div>
+
+            <div class="history-card">
+                <h2>📋 Recent Results</h2>
+                <div class="history-list" id="historyList">
+                    <div class="empty-state">
+                        <p>😴 No notifications sent yet.</p>
+                        <p style="font-size: 0.9em; margin-top: 10px;">Send your first notification to see results here!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="result-container" id="resultContainer" style="display: none;">
+            <div class="results-card">
+                <h2>✨ Decision Result</h2>
+                
+                <div id="decisionDisplay"></div>
+
+                <div class="details-box">
+                    <div class="detail-row">
+                        <span class="detail-label">📨 Event Type:</span>
+                        <span class="detail-value" id="resultEventType"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">📝 Message:</span>
+                        <span class="detail-value" id="resultMessage"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">🎯 Source:</span>
+                        <span class="detail-value" id="resultSource"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">📡 Channel:</span>
+                        <span class="detail-value" id="resultChannel"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">⚠️ Risk Score:</span>
+                        <span class="detail-value" id="resultRiskScore"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">📋 Policy Version:</span>
+                        <span class="detail-value" id="resultPolicyVersion"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('notificationForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const loading = document.getElementById('loading');
+        const resultContainer = document.getElementById('resultContainer');
+        const historyList = document.getElementById('historyList');
+        let history = [];
+
+        const decisionMessages = {
+            'Now': {
+                emoji: '✅',
+                title: 'Send Now',
+                description: 'This notification will be delivered immediately!'
+            },
+            'Later': {
+                emoji: '⏱️',
+                title: 'Send Later',
+                description: 'This will be batched and sent with other notifications.'
+            },
+            'Never': {
+                emoji: '🚫',
+                title: 'Do Not Send',
+                description: 'This notification is blocked for reliability or policy reasons.'
+            }
+        };
+
+        const reasonExplanations = {
+            'passed_all_checks': '✅ Meets all criteria for immediate delivery',
+            'exact_duplicate': '🔄 Already sent recently - duplicate blocked',
+            'near_duplicate': '🔎 Similar content - batching for digest',
+            'hourly_rate_limit_exceeded': '⏱️ Too many notifications this hour',
+            'channel_cooldown_active': '⏱️ Same channel used recently - preventing spam',
+            'event_expired': '⏰ Notification is no longer valid',
+            'event_type_suppressed': '🚫 This type of notification is disabled',
+            'promotional_daily_cap_reached': '🎁 Daily promotion limit reached',
+        };
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await sendNotification();
+        });
+
+        async function sendNotification() {
+            errorMessage.classList.remove('active');
+            loading.classList.add('active');
+
+            const formData = {
+                userid: document.getElementById('userid').value,
+                eventtype: document.getElementById('eventtype').value,
+                title: document.getElementById('title').value,
+                message: document.getElementById('message').value,
+                source: document.getElementById('source').value,
+                channel: document.getElementById('channel').value,
+                timestamp: new Date().toISOString(),
+            };
+
+            if (document.getElementById('priorityhint').value) {
+                formData.priorityhint = document.getElementById('priorityhint').value;
+            }
+
+            if (document.getElementById('dedupekey').value) {
+                formData.dedupekey = document.getElementById('dedupekey').value;
+            }
+
+            try {
+                const response = await fetch('/v1/notifications/decide', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const result = await response.json();
+                displayResult(result, formData);
+                addToHistory(result, formData);
+            } catch (error) {
+                errorMessage.textContent = '❌ Error: ' + error.message;
+                errorMessage.classList.add('active');
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+
+        function displayResult(result, formData) {
+            const decision = result.decision;
+            const decisionInfo = decisionMessages[decision];
+            const lowerDecision = decision.toLowerCase();
+
+            const explanation = reasonExplanations[result.reason] || result.reason;
+
+            let decisionHTML = `
+                <div class="decision-box ${lowerDecision}">
+                    <div class="decision-icon">${decisionInfo.emoji}</div>
+                    <div class="decision-text">
+                        <h3>${decisionInfo.title}</h3>
+                        <p>${decisionInfo.description}</p>
+                        <div class="reason-badge">${explanation}</div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('decisionDisplay').innerHTML = decisionHTML;
+            document.getElementById('resultEventType').textContent = formData.eventtype;
+            document.getElementById('resultMessage').textContent = formData.message;
+            document.getElementById('resultSource').textContent = formData.source;
+            document.getElementById('resultChannel').textContent = formData.channel;
+            document.getElementById('resultRiskScore').textContent = result.risk_score.toFixed(2);
+            document.getElementById('resultPolicyVersion').textContent = result.policy_version;
+
+            resultContainer.style.display = 'block';
+            resultContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function addToHistory(result, formData) {
+            const decision = result.decision.toLowerCase();
+            const decisionInfo = decisionMessages[result.decision];
+            const explanation = reasonExplanations[result.reason] || result.reason;
+
+            const historyItem = {
+                decision: result.decision,
+                decisionLower: decision,
+                emoji: decisionInfo.emoji,
+                title: formData.title,
+                eventtype: formData.eventtype,
+                message: formData.message.substring(0, 50) + (formData.message.length > 50 ? '...' : ''),
+                reason: explanation
+            };
+
+            history.unshift(historyItem);
+            if (history.length > 10) history.pop();
+
+            updateHistoryDisplay();
+        }
+
+        function updateHistoryDisplay() {
+            if (history.length === 0) {
+                historyList.innerHTML = `
+                    <div class="empty-state">
+                        <p>😴 No notifications sent yet.</p>
+                        <p style="font-size: 0.9em; margin-top: 10px;">Send your first notification to see results here!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            historyList.innerHTML = history.map(item => `
+                <div class="history-item ${item.decisionLower}">
+                    <div class="history-item-title">${item.emoji} ${item.title}</div>
+                    <div class="history-item-type">${item.eventtype}</div>
+                    <div style="margin-bottom: 8px; color: #666; font-size: 0.85em;">
+                        ${item.message}
+                    </div>
+                    <div>
+                        <span class="history-item-decision ${item.decisionLower}">${item.decision}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Set default values
+        document.getElementById('eventtype').value = 'message_direct';
+        document.getElementById('channel').value = 'push';
+        document.getElementById('source').value = 'demo';
+    </script>
+</body>
+</html>
